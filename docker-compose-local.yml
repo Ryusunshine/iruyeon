@@ -1,0 +1,82 @@
+version: "3.8"
+
+services:
+  elasticsearch:
+    image: docker.elastic.co/search/search:8.10.0
+    container_name: search
+    platform: linux/arm64
+    ports:
+      - "9200:9200"
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms256m -Xmx256m # 256MB로 최소 설정
+    networks:
+      - elastic-network
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.10.0
+    container_name: logstash
+    platform: linux/arm64
+    ports:
+      - "5044:5044"
+      - "9600:9600"
+    volumes:
+      - ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf  # 여기에 volumes 추가
+    networks:
+      - elastic-network
+
+  kibana:
+    image: kibana:8.10.1
+    container_name: kibana
+    platform: linux/arm64
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://search:9200
+    networks:
+      - elastic-network
+    depends_on:
+      - elasticsearch  # Kibana는 Elasticsearch가 시작된 후에 시작됨
+
+  iruyeon-redis: # 서비스명
+    container_name: iruyeon-redis # 컨테이너명
+    build:
+      dockerfile: Dockerfile
+    image: iruyeon/iruyeon-redis
+    ports:
+      - "6379:6379"
+
+  iruyeon-db: # 서비스명
+    container_name: iruyeon-db # 컨테이너명
+    restart: always
+    build:
+      dockerfile: Dockerfile
+    image: iruyeon/iruyeon-db
+    environment:
+      MYSQL_DATABASE: root
+      MYSQL_ROOT_PASSWORD: fbtjs4956
+    volumes:
+      - ./database/config:/etc/mysql/conf.d
+      - ./database/init:/docker-entrypoint-initdb.d
+    ports:
+      - "3307:3306"
+
+  iruyeon-app: # 서비스명
+    container_name: iruyeon-app # 컨테이너명
+    build: .
+    depends_on: # DB, REDIS 컨테이너가 실행된 다음 WEB을 실행시킨다.
+      - iruyeon-db
+      - iruyeon-redis
+    image: iruyeon/iruyeon-app
+    environment:
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: fbtjs4956
+      SPRING_PROFILES_ACTIVE: prod
+    ports:
+      - "80:8080" # 접근 포트 설정 (컨테이너 외부:컨테이너 내부)
+    restart: always
+
+networks:
+  elastic-network:
+    driver: bridge

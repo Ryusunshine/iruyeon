@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    <!-- Spring Boot에서 제공하는 기본 Logback 설정을 포함합니다. 기본 로깅 설정을 사용하려는 경우 이 항목을 추가합니다. -->
+
+<!--    <springProperty name="DISCORD_WEBHOOK_URL" source="logging.discord.webhook-url"/>-->
+    <springProperty name="LOG_GROUP_NAME" source="logging.cloudwatch.log-group"/>
+    <springProperty name="AWS_REGION" source="logging.cloudwatch.region"/>
+    <!--Spring Boot에서 application.properties 또는 application.yml 파일에 설정된 값을 Logback에서 참조할 수 있게 만들어줍니다. -->
+    <!--
+    DISCORD_WEBHOOK_URL:
+    Spring 프로퍼티 logging.discord.webhook-url의 값을 Logback에서 DISCORD_WEBHOOK_URL로 사용하고, 이를 Discord에 로그를 전송하는데 사용합니다.
+    LOG_GROUP_NAME:
+    logging.cloudwatch.log-group 값은 AWS CloudWatch 로그 그룹 이름을 설정하는 데 사용됩니다.
+    AWS_REGION:
+    logging.cloudwatch.region 값은 AWS 리전을 설정하는 데 사용됩니다.
+    -->
+
+    <!-- MDC 값이 없을 때 표시할 기본값 설정 -->
+    <!--
+     MDC 값이 없을 때 표시될 기본값을 정의하는 프로퍼티입니다. 예를 들어,
+     user_id와 같은 필수 정보를 로깅해야 하지만, 만약 그 값이 없을 경우에는 -를 기본값으로 설정하여 로그가 빈 값 없이 출력되도록 합니다.
+    -->
+    <property name="DEFAULT_MDC" value="-"/>
+
+    <!-- MDC 기본값 설정을 위한 초기화 -->
+    <!--
+    <contextListener class =ch.qos.logback.classic.jul.LevelChangePropagator는
+    JUL(Java Util Logging) 로거와의 통합을 위해 사용된다. 로그 레벨 변경 시 Logback 설정을 갱신하는 역할을 합니다
+    .-->
+    <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator">
+        <resetJUL>true</resetJUL>
+    </contextListener>
+
+    <!-- MDC 초기화를 위한 TurboFilter -->
+    <!-- <turboFilter> ch.qos.logback.classic.turbo.DuplicateMessageFilter는 중복된 로그 메시지를 필터링하여 출력되지 않도록 합니다-->
+    <turboFilter class="ch.qos.logback.classic.turbo.DuplicateMessageFilter"/>
+
+    <!-- 공통 로그 패턴 정의 -->
+    <property name="COMMON_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [%.-5level] [%X{request_id:-}] [%X{layer:-}] [%X{api:-}] [%X{error_source:-}] %logger - %msg%n"/>
+
+    <!-- 로그를 어디에 출력할지 정의하는 부분. 여러 종류의 appender를 설정한다. -->
+
+    <!-- AWS Cloudwatch로 전송할 Appender  -->
+    <appender name="AWS_LOGS" class="ca.pjer.logback.AwsLogsAppender">
+        <layout>
+            <pattern>${COMMON_PATTERN}</pattern>
+        </layout>
+        <logGroupName>${LOG_GROUP_NAME}</logGroupName>
+        <logStreamUuidPrefix>spring-boot-app-</logStreamUuidPrefix>
+        <logRegion>${AWS_REGION}</logRegion>
+        <maxBatchLogEvents>50</maxBatchLogEvents>
+        <maxFlushTimeMillis>30000</maxFlushTimeMillis>
+        <maxBlockTimeMillis>5000</maxBlockTimeMillis>
+        <retentionTimeDays>0</retentionTimeDays>
+        <!--ThresholdFilter를 사용해 ERROR 레벨 이상의 로그만 AWS로 전송 -->
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+    </appender>
+
+    <!-- Logstash로 전송할 Appender -->
+    <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+        <destination>localhost:5044</destination>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder" />
+    </appender>
+
+    <!--Console: 콘솔에 로그를 출력합니다. 로그 패턴을 정의하고, utf8 문자셋을 사용하도록 설정합니다. -->
+    <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${COMMON_PATTERN}</pattern>
+            <charset>utf8</charset>
+        </encoder>
+    </appender>
+
+    <!--ASYNC_AWS_LOGS: AWS CloudWatch 로그 전송을 비동기적으로 처리하는 설정 -->
+    <appender name="ASYNC_AWS_LOGS" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="AWS_LOGS" />
+    </appender>
+
+
+    <!-- Root 레벨 설정 -->
+    <!-- 애플리케이션의 기본 로그 레벨을 설정합니다. 기본 레벨은 INFO로 설정되어 있으며, Console appender가 연결됩니다.-->
+    <root level="INFO">
+        <appender-ref ref="Console" />
+    </root>
+
+    <!-- Controller 레벨 로깅 설정 -->
+    <logger name="com.iruyeon.v1.domain.client.controller" level="INFO" additivity="false">
+        <appender-ref ref="Console" />
+    </logger>
+
+    <!-- Service 레벨 로깅 설정 -->
+    <logger name="com.iruyeon.v1.domain.client.service" level="INFO" additivity="false">
+        <appender-ref ref="Console" />
+    </logger>
+
+    <!-- Repository 레벨 로깅 설정 -->
+    <logger name="com.iruyeon.v1.domain.client.repository" level="INFO" additivity="false">
+        <appender-ref ref="Console" />
+    </logger>
+
+    <!-- 로컬 환경 설정 -->
+    <!-- <springProfile name="local">: 로컬 환경에서 로그 레벨을 INFO로 설정하고, Console에만 로그를 출력합니다.-->
+    <springProfile name="local">
+        <root level="INFO">
+            <appender-ref ref="Console"/>
+            <appender-ref ref="LOGSTASH" />
+        </root>
+    </springProfile>
+
+    <!-- 개발 및 프로덕션 환경 설정 -->
+    <!-- 개발 및 프로덕션 환경에서 로그 레벨을 ERROR로 설정하고,
+    ASYNC_DISCORD, ASYNC_AWS_LOGS, Console에 로그를 비동기적으로 출력합니다.-->
+    <springProfile name="dev,prod">
+        <root level="ERROR">
+            <appender-ref ref="ASYNC_AWS_LOGS"/>
+            <appender-ref ref="Console"/>
+            <appender-ref ref="LOGSTASH" />
+        </root>
+    </springProfile>
+
+</configuration>

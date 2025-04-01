@@ -1,0 +1,75 @@
+spring:
+  config:
+    activate:
+      on-profile: local
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/iruyeon?useSSL=false&characterEncoding=UTF-8&serverTimezone=Asia/Seoul&zeroDateTimeBehavior=convertToNull&allowPublicKeyRetrieval=true
+    username: root
+    password: fbtjs4956
+  jpa:
+    show-sql: true
+    database: mysql
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        format_sql: true
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+      maxFileSize: 100MB
+      maxRequestSize: 100MB
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 867220403863-anuaija6ogjnvbrinofum83ce22momkh.apps.googleusercontent.com
+            client-secret: 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
+            scope: profile,email
+            redirect-uri: http://localhost:8080/member/login/google
+
+  data:
+    redis:
+      host: local
+      port: 6379
+      timeout: 3000ms
+      repositories:
+        enabled: true
+
+  #          kakao:
+  #            client-id: f2cd5a7e7d1f3b0d521dfe2672489d64
+  #            client-secret: Wvh133I9MPhdzRT86xS6ZHh46hsztyYG
+  #            client-name: Kakao
+  #            client-authentication-method: client_secret_post
+  #            authorization-grant-type: authorization_code
+  #            redirect-uri:
+  #            scope:
+  #              - profile_nickname
+  #              - account_email
+  #              - profile_image
+  #        provider:
+  #          kakao:
+  #            authorization-uri: https://kauth.kakao.com/oauth/authorize
+  #            token-uri: https://kauth.kakao.com/oauth/token
+  #            user-info-uri: https://kapi.kakao.com/v2/user/me
+  #            user-name-attribute: id
+
+
+cloud:
+  aws:
+    credentials:
+      secret-key: jvivy45f+8axiK4tBf9Gg0fqMoVUUQwUoaHUpDaK
+      access-key: AKIAS6RYVF36ECTXRXRX
+    s3:
+      bucket: iruyeon
+    region:
+      static: ap-northeast-2
+    stack:
+      auto: false
+
+jwt:
+  secret: aXJ1eWVvbkBvYXV0aFN1cGVyU2VjcmV0S2V5
+

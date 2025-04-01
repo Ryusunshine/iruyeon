@@ -1,0 +1,32 @@
+server:
+  port: 8080
+
+spring:
+  profiles:
+    active: local
+
+security:
+  roles:
+    member:
+      - ROLE_MEMBER
+    admin:
+      - ROLE_TEACHER
+    approved:
+      - ROLE_MEMBER
+    member_approved:
+      - ROLE_MEMBER
+      - APPROVED
+    member_disapproved:
+      - APPROVAL_PENDING
+      - APPROVAL_CANCEL
+      - APPROVAL_DENIED
+      -
+logging:
+  discord:
+    webhook-url: https://discord.com/api/webhooks/1290588163835957291/u8b4MR0RDzz_41dMYdhcNu0Qfe-78W-xteNpoFK9km55p0lNog0IXeW8IYftgenvmCb7
+  config: classpath:logback-spring.xml
+  level:
+    root: INFO
+  cloudwatch:
+    log-group: "/spring-boot/application-logs"
+    region: ap-northeast-2

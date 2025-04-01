@@ -6,6 +6,10 @@ plugins {
 
 group = 'com.iruyeon'
 version = '0.0.1-SNAPSHOT'
+//
+//bootJar {
+//    archiveFileName = 'app.jar'
+//}
 
 java {
     toolchain {
@@ -29,6 +33,46 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    implementation 'org.springframework.boot:spring-boot-starter-aop'
+    implementation 'mysql:mysql-connector-java:8.0.33'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    testImplementation 'org.springframework.security:spring-security-test'
+    implementation 'io.github.cdimascio:dotenv-java:2.2.0'
+
+    //jwt
+    implementation 'io.jsonwebtoken:jjwt:0.9.1'
+    implementation 'javax.xml.bind:jaxb-api:2.3.1'
+
+    //json
+    implementation 'org.bouncycastle:bcpkix-jdk18on:1.72'
+    implementation 'org.json:json:20210307'
+
+    //s3
+    implementation 'io.awspring.cloud:spring-cloud-starter-aws:2.4.2'
+    implementation platform("software.amazon.awssdk:bom:2.16.60")
+    implementation 'software.amazon.awssdk:s3:2.20.68'
+
+    //oauth
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+
+    //redis
+//    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+    //logstash
+    implementation 'net.logstash.logback:logstash-logback-encoder:7.4'
+
+    //batch
+    implementation 'org.springframework.boot:spring-boot-starter-batch'
+
+    // aws-cloudwatch
+    implementation group: 'ca.pjer', name: 'logback-awslogs-appender', version: '1.6.0'
+
+    //elasticSearch Config
+    implementation 'org.springframework.boot:spring-boot-starter-data-search'
+
 }
 
 tasks.named('test') {
